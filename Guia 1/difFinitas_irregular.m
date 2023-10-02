@@ -1,26 +1,38 @@
-function [T] = difFinitas_orden2(xnode, model, cb, et)
+function [T] = difFinitas_irregular(xnode, model, cb, ct)
 
   # ------- Constantes del modelo ------- #
   k = model.k;
   cR = model.cR;
   rho = model.rho;
   cp = model.cp;
-  G = model.G;
 
   # ------- Armado del sistema de ecuaciones ------- #
 
-  # FOR PARA ARMAR LA MATRIZ (malla regular):
-  dx = xnode(2)-xnode(1);
+  #  XNODE: Puntos de la malla
+  #  Ejemplo: [0.0, 0.25, 0.3, 0.8, 0.9, 1]
+  #  Resuelvo como si fuera irregular siempre, si h+ = h-
+  #  se arma como regular porque vuelve al stencil clásico.
+
   K = zeros(length(xnode),length(xnode));
   for i = 2:(length(xnode)-1)
-    K(i,i-1:i+1) = [-1 2+((dx.^2*cR)./k) -1];
+      hp = xnode(i+1) - xnode(i);   # h+
+      hm = xnode(i) - xnode(i-1);   # h-
+
+      a = 2/(hp*(hp+hm));
+      b = -2/(hp*hm);
+      c = 2/(hm*(hp+hm));
+
+      A = (k*a);
+      B = -(k*b+cr);
+      C = (k*c);
+
+      K(i,i-1:i+1) = [A,B,C];
+      F(i) = model.G(i);
   endfor
 
   # ------- Condiciones de borde ------- #
   # Agrego primera y última fila según las condiciones de borde.
-  # Usamos nodo ficticio (2do orden de aproximación).
-  b = zeros(length(xnode),1);
-  b(1:end) = (G(1:end)./k)*(dx^2);
+  # Usamos nodo ficticio, como está centrado lo hacemos como regular.
 
   # BORDE A:
   switch(cb(1,1))
@@ -60,5 +72,6 @@ function [T] = difFinitas_orden2(xnode, model, cb, et)
       b(end) += ((2*dx*h)./k).*uE;
   endswitch
 
-  T = K\b;
+  # ------- Resolución del sistema ------- #
+  T = K\F;
 

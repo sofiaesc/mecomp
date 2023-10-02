@@ -60,19 +60,6 @@ function [T] = difFinitas_orden1(xnode, model, cb, et)
       b(end) = h*uE;
   endswitch
 
-  # ------- Condición temporal ------- #
-  # Consideramos siempre la condición nula: T(x,0) = 0.
-
-  #   VALORES DE CT:
-  #  -1: estacionario
-  #   1: forward euler
-  #   2: backward euler
-  #   3: crank-nicholson
-
-  # for (
-      # T = K\b
-      # El K no cambia, el b sí cambia y por eso está en un for.
-
   # ------- Resolución del sistema ------- #
   T = K\b;
 
