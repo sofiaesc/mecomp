@@ -1,8 +1,9 @@
-function [T] = difFinitas(xnode, model, cb, et)
+function [T] = difFinitas(xnode, model, cb, et, Tant = zeros(N,1);)
   % inicializacion de variables %
   N = length(xnode);
   K = zeros(N,N);
   F = zeros(N,1);
+  t = 0;
 
   % parametros del modelo %
   rho_cp = model.rho*model.cp;
@@ -74,7 +75,6 @@ function [T] = difFinitas(xnode, model, cb, et)
     disp('Estado estacionario');
 
   elseif et(1) == 1 # esquema explicito
-    Tant = zeros(N,1);
     T = Tant;
     maxIt = et(2); tol = et(3);
     dx = max(diff(xnode));
@@ -82,11 +82,11 @@ function [T] = difFinitas(xnode, model, cb, et)
     dt = 0.9*((0.5*(dx*dx))/alpha); # 0.9*dt_critico
 
     [K, F] = dirchlet(K, F, cb);
-    
-    
+
+
     for i=1:maxIt
       Tact = (dt/rho_cp)*(K*Tant+F)+Tant;
-      
+
       # en cada iteracion corregimos/fijamos la/las
       # condiciones dirichlet
       if cb(1,1) == 1
@@ -102,7 +102,7 @@ function [T] = difFinitas(xnode, model, cb, et)
       plot(xnode, Tact, '*-b')
       title(sprintf('nit: %d - error: %e',i,err));
       pause(0.05)
-      
+
       if (err<tol)
         disp('Se alcanza el estado estacionario segun la tolerancia definida');
         return
@@ -112,7 +112,6 @@ function [T] = difFinitas(xnode, model, cb, et)
     endfor
     disp('Se alcanza el maximo de iteraciones sin llegar a un estado estacionario');
   else # esquema implicito
-    Tant = zeros(N,1);
     T = Tant;
     maxIt = et(2); tol = et(3);
     dx = max(diff(xnode));
@@ -122,7 +121,7 @@ function [T] = difFinitas(xnode, model, cb, et)
     for i=1:maxIt
       Fimp = F + (rho_cp/dt)*Tant;
       Tact = inv(Kimp)*Fimp;
-      
+
       # en cada iteracion corregimos/fijamos la/las
       # condiciones dirichlet
       if cb(1,1) == 1
@@ -138,7 +137,7 @@ function [T] = difFinitas(xnode, model, cb, et)
       plot(xnode, Tact, '*-b')
       title(sprintf('nit: %d - error: %e',i,err));
       pause(0.05)
-      
+
       if (err<tol)
         disp('Se alcanza el estado estacionario segun la tolerancia definida');
         return
@@ -147,7 +146,7 @@ function [T] = difFinitas(xnode, model, cb, et)
       Tant = Tact;
     endfor
     disp('Se alcanza el maximo de iteraciones sin llegar a un estado estacionario');
-  
+
   endif
 
 endfunction

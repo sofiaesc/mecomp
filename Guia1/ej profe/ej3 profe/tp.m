@@ -1,4 +1,4 @@
-close all; clear all;
+clc; close all; clear all;
 
 % L1 y L2: extremos izquierdo y derecho respectivamente
 % N: cantidad de puntos
@@ -17,19 +17,25 @@ close all; clear all;
 
 % Cualquier ejercicio puede ser resuelto en su versión transiente o estacionaria
 
-# EJERCICIO 2.a
  L1=0; L2=1;
- N = 100;
+ N = 40;
  dx = (L2-L1)/N;
  xnode = L1:dx:L2;
- cb = [1 10 -1;1 50 -1];
+ cb = [1 0 -1;2 0 -1];
  model.rho = 1; model.cp = 1;
  model.k = 1; model.c = 0;
- model.G = @(x,t) (t < 2)*100; et = [0 -1 -1 -1];
- Tex = -25*(xnode.*xnode)+65*xnode+10;
- T = difFinitas(xnode, model, cb, et);
+ # Como N=40 dx = 1/40 = 0.025
+ # alpha = k/rhoCp = 1/1
+ dt = 4.*dx.*dx;
+
+ model.G = 100.*xnode.^0; et = [2 2000 1e-10000 dt];
+ Tant = -10.*xnode.^2 + 20.*xnode;
+
+ axis = [0 1 0 50]
+ T = tp_dif_finitas(xnode, model, cb, et,Tant');
 
 hold on
-plot(xnode, Tex, 'r')
-xlabel('x'); ylabel('Temp')
-legend('Aproximada', 'Exacta')
+#plot(xnode, T, 'b')
+#plot(xnode, Tant, 'r')
+#xlabel('x'); ylabel('Temp')
+#legend('Aproximada', 'Exacta')
